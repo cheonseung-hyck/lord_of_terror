@@ -26,8 +26,6 @@ public class MyWebServer extends Thread {
             int readLength;
             byte[] data = new byte[1000];
             readLength = bis.read(data, 0, 1000);
-            bis.close();
-            sc.getInputStream().close();
             st = new StringTokenizer(new String(data, 0, readLength), "\r\n");
 
             bos.write("HTTP/1.1 200 OK\r\n".getBytes());
@@ -43,6 +41,7 @@ public class MyWebServer extends Thread {
             bos.flush();
             bos.close();
             sc.getOutputStream().close();
+            sc.getInputStream().close();
             sc.close();  
         } catch (IOException e) {
             e.printStackTrace();
