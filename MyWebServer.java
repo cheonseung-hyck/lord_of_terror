@@ -5,7 +5,7 @@ public class MyWebServer extends Thread {
     Socket sc;
     BufferedInputStream bis;
     BufferedOutputStream bos;
-    StringTokenizer st;
+    StringTokenizer st; 
     public MyWebServer(Socket sc) {
         try{
             this.sc = sc;
