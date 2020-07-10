@@ -396,4 +396,7 @@ public class mainUI extends JFrame {
 		mplayer.currentMusic = new File(mp.musicFileList.get(mplayer.music_now));
 		play_Button.setIcon(playIcon);
 	}
+	public void showMessage(String str){
+		JOptionPane.showMessageDialog(null, str);
+	}
 }

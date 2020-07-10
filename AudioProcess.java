@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.ArrayList;
 
 import org.encog.ConsoleStatusReportable;
 import org.encog.ml.MLRegression;
@@ -18,9 +19,8 @@ public class AudioProcess {
     static NormalizationHelper helper;
     static MLRegression bestMethod;
     public static void main(String[] args){
-        File file = new File(args[0]);
-        System.out.println("tempo : "+getTempo(file));
-        System.out.println("Chord : "+getChord(file));
+        //trainData(new File("./data/musicdata.csv"));
+        System.out.println(getMood(new File("a.wav")));
     }
 
     public static int getTempo(File f){
@@ -57,36 +57,40 @@ public class AudioProcess {
         }
         return 0;
     }
-    public static String getChord(File f){
+    public static ArrayList<String> getChord(File f){
         try{
+            ArrayList<String> resList = new ArrayList<String>();
             String fileName = f.getName();
 
-            if(!fileName.endsWith("wav"))
+            if(!(fileName.endsWith("wav")||fileName.endsWith("mp3")))
                 return null;
 
-            Process p = Runtime.getRuntime().exec(".\\marsyas-0.5.0\\bin\\pitchextract.exe -m key "+f.getCanonicalPath());
+            Process p = Runtime.getRuntime().exec("py Untitled5.py "+f.getCanonicalPath());
             char c=' ';
-            String result = new String();
+            StringBuilder result = new StringBuilder();
             boolean flag=false;;
             while(true){
                 if(p.getInputStream().available()>0){
                     c = (char)p.getInputStream().read();
-                    if(c=='=')
-                        flag=true;
-                   if(flag&&"ABCDEFG".indexOf(c)>0){
-                       result += c;
-                       if((c=(char)p.getInputStream().read())!='\t')
-                            result += c;
-                        result += " ";
-                        while((c=(char)p.getInputStream().read())!='\r'){
-                            if(c!='\t')
-                                result += c;
-                        }
+                    if(c=='#'){
                         break;
-                   }
+                    }
+                    if(c=='?'){
+                        flag=false;
+                        resList.add(result.toString());
+                        result.delete(0,result.length());
+                    }
+                    
+                    if(flag){
+                        result.append(c);
+                    }
+                    
+                    if(c=='!'){
+                        flag=true;
+                    }
                 }
             }
-            return result;
+            return resList;
          }
         catch(Exception e){
             e.printStackTrace();
@@ -95,12 +99,13 @@ public class AudioProcess {
     }
     public static void trainData(File file){
 
-        VersatileDataSource source = new CSVDataSource(file, false, CSVFormat.EG_FORMAT);
+        VersatileDataSource source = new CSVDataSource(file, true, CSVFormat.DECIMAL_POINT);
         VersatileMLDataSet data = new VersatileMLDataSet(source);
-        data.defineSourceColumn("tempo",0,ColumnType.continuous);
-        data.defineSourceColumn("chord-a",1,ColumnType.nominal);
-        data.defineSourceColumn("chord-b",2,ColumnType.nominal);
-        ColumnDefinition outputColumn = data.defineSourceColumn("mood", 3, ColumnType.nominal);
+        data.defineSourceColumn("zero_crossing_rate",0,ColumnType.continuous);
+        for(int i=0;i<20;i++){
+            data.defineSourceColumn("mfcc"+(i+1),i+1,ColumnType.continuous);
+        }
+        ColumnDefinition outputColumn = data.defineSourceColumn("label", 21, ColumnType.nominal);
         data.analyze();
 
         data.defineSingleOutputOthersInput(outputColumn);
@@ -127,21 +132,14 @@ public class AudioProcess {
     }
     public static String getMood(File file){
 
-        int tempo;
-        String[] chord;
-        String chordA, chordB;
-
-        tempo = getTempo(file);
-        chord = getChord(file).split(" ");
-        
-        chordA = chord[0];
-        chordB = chord[1];
+       
+        String[] result = getChord(file).toArray(new String[21]);
         
         if(helper==null||bestMethod==null)
             loadModel();
 
         MLData input = helper.allocateInputVector();
-        helper.normalizeInputVector(new String[]{String.valueOf(tempo),chordA,chordB},input.getData(),false);
+        helper.normalizeInputVector(result,input.getData(),false);
         MLData output = bestMethod.compute(input);
         return helper.denormalizeOutputVectorToString(output)[0];
     }

@@ -32,14 +32,14 @@ public class Word {
 		  return List;
 		 
 		 }
-		 public static String[] mood =  {"Positive","Negative","Study","Exercise"};
+		 public static String[] mood =  {"happy","sad","calm","energetic"};
 	public static String getResult(ArrayList<String> totalTweets) {
 		
 		String[] name=new String[4];
-		name[0] = ".\\data\\Positive.txt";
-		name[1] = ".\\data\\Negative.txt";
-		name[2] = ".\\data\\Study.txt";
-		name[3] = ".\\data\\Exercise.txt";
+		name[0] = ".\\data\\happy.txt";
+		name[1] = ".\\data\\sad.txt";
+		name[2] = ".\\data\\calm.txt";
+		name[3] = ".\\data\\energetic.txt";
 		int flag = -1;
 		double max = 0;
 		for(int i = 0; i<4; i++) {
@@ -52,10 +52,10 @@ public class Word {
 			tmp=0;
 		}
 		switch(flag){
-			case 0:return "Positive";
-			case 1:return "Negative";
-			case 2:return "Study";
-			case 3:return "Exercise";
+			case 0:return "happy";
+			case 1:return "sad";
+			case 2:return "calm";
+			case 3:return "energetic";
 			default: return "Error";
 		}
 	}
